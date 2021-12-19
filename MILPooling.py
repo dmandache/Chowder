@@ -13,7 +13,6 @@ class MILPooling(Layer):
         self.kmin = kmin
 
     def compute_output_shape(self, input_shape):
-        #return (input_shape[0], (input_shape[2] * self.k))
         return (input_shape[0], self.kmax + self.kmin, input_shape[2])
 
     def get_config(self):
@@ -26,11 +25,16 @@ class MILPooling(Layer):
         # swap last two dimensions since top_k will be applied along the last dimension
         shifted_input = tf.transpose(inputs, [0, 2, 1])
 
-        # extract top_k, returns two tensors [values, indices]
+        # extract top_k
+        # tf.nn.top_k returns two tensors [values, indices], keep values only
         top_k = tf.nn.top_k(shifted_input, k=self.kmax, sorted=True, name=None)[0]
+        
+        # extract bottom_k
+        # using same tf.nn.top_k function on inverted values, then invert again to obtain original values
         if self.kmin > 0:
             bottom_k = tf.negative(tf.nn.top_k(tf.negative(shifted_input), k=self.kmin, sorted=True, name=None)[0])
-
+            
+        # concatenate top_k and bottom_k in a single tensor
         out = tf.concat([top_k, bottom_k], -1) if self.kmin > 0 else top_k
 
         return out
