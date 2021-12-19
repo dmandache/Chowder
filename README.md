@@ -20,5 +20,5 @@ Code for a submission to the data challenge https://challengedata.ens.fr/partici
 |:------------------:	|:---------------:	|:--------:	|:--------------------:	|
 |       Chowder      	| 0.892 +/- 0.019 	|   0.78   	|          #66         	|
 |       MaxPool      	| 0.853 +/- 0.099 	|   0.83   	|          #18         	|
-| Pretrained MaxPool 	|                 	|   0.86   	|          #8          	|
+| Pretrained MaxPool 	| 0.962 +/- 0.011	 |   0.86   	|          #8          	|
 |   Supervised MLP   	| 0.954 +/- 0.002 	|   N.A.   	|         N.A.         	|
