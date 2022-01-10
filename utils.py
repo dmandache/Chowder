@@ -14,12 +14,14 @@ def batch_generator(df, batch_size):
     '''
     df_batch_neg = df[df.Target==0]
     df_batch_pos = df[df.Target==1]
-    neg_ratio = len(df_batch_neg)/len(df)
+    
+    n_neg_samples = int(batch_size * len(df_batch_neg)/len(df))
+    n_pos_samples = batch_size - m_neg_samples
     
     while True:
         # randomly sample N*ratio negative samples and N*(1-ratio) positive samples
-        df_batch_neg = df_batch_neg.sample(n=batch_size*neg_ratio)
-        df_batch_pos = df_batch_pos.sample(n=batch_size-len(df_batch_neg))
+        df_batch_neg = df_batch_neg.sample(n=n_neg_samples)
+        df_batch_pos = df_batch_pos.sample(n=n_pos_samples)
         df_batch = pd.concat([df_batch_neg,df_batch_pos])
         # shuffle
         df_batch = df_batch.sample(frac=1)
