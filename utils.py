@@ -5,8 +5,48 @@ import random
 '''
     BATCH GENERATORS
 '''
-        
+
 def batch_generator(df, batch_size):
+    '''
+        randomized generator returing N = batch_size samples at a time
+        (batch_size, max_tiles_per_batch, feature_size)
+        padding with zeros for constant n_tiles across samples        
+    '''
+    df_batch_neg = df[df.Target==0]
+    df_batch_pos = df[df.Target==1]
+    neg_ratio = len(df_batch_neg)//len(df)
+    
+    while True:
+        # randomly sample N indeces
+        df_batch_neg = df_batch_neg.sample(n=batch_size*neg_ratio)
+        df_batch_pos = df_batch_pos.sample(n=batch_size-len(df_batch_neg))
+        df_batch = pd.concat([df_batch_neg,df_batch_pos])
+        # shuffle
+        df_batch = df_batch.sample(frac=1)
+        
+        # get labels in batch
+        Y = df_batch.Target.values
+        # compute the maximum number of tiles 
+        # contained by an image in  the current batch
+        n_tiles_per_batch = df_batch['tiles_count'].max()
+        # get the features in batch
+        X = []
+        for _, row in df_batch.iterrows(): 
+            # get filenames
+            filename = row['Path']
+            # get features from file
+            features = np.load(filename)[:, 3:]
+            # get number of tiles in current samples
+            n_tiles_per_image = features.shape[0]
+            # pad with zeros if neccesary
+            if n_tiles_per_image < n_tiles_per_batch:
+                features = np.pad(features, ((n_tiles_per_batch-n_tiles_per_image, 0), (0, 0)))
+            X.append(features)  
+        X = np.stack(X, axis=0)
+        yield X, Y
+        
+        
+def naive_batch_generator(df, batch_size):
     '''
         randomized generator returing N = batch_size samples at a time
         (batch_size, max_tiles_per_batch, feature_size)
