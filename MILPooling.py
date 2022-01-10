@@ -21,7 +21,7 @@ class MILPooling(Layer):
         return dict(list(base_config.items()) + list(config.items()))
 
     def call(self, inputs):
-
+        
         # swap last two dimensions since top_k will be applied along the last dimension
         shifted_input = tf.transpose(inputs, [0, 2, 1])
 

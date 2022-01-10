@@ -6,17 +6,22 @@ import random
     BATCH GENERATORS
 '''
 
-def batch_generator(df, batch_size):
+def batch_generator(df, batch_size, strategy='stratified', pad_value=0.0):
     '''
         randomized generator returing N = batch_size samples at a time
         respecting global class proprion in each batch
         (batch_size, max_tiles_per_batch, feature_size)
-        padding with zeros for constant n_tiles across samples        
+        padding with zeros for constant n_tiles across samples 
+        
+        strategy : 'balanced' or 'stratified'
     '''
     df_neg = df[df.Target==0]
     df_pos = df[df.Target==1]
     
-    n_neg_samples = int(batch_size * len(df_neg)/len(df))
+    if strategy=='balanced':
+        n_neg_samples = int(batch_size * len(df_neg)/len(df))
+    elif strategy=='stratified':
+        n_neg_samples = batch_size // 2
     n_pos_samples = batch_size - n_neg_samples
     
     while True:
@@ -41,7 +46,7 @@ def batch_generator(df, batch_size):
             n_tiles_per_image = features.shape[0]
             # pad with zeros if neccesary
             if n_tiles_per_image < n_tiles_per_batch:
-                features = np.pad(features, ((n_tiles_per_batch-n_tiles_per_image, 0), (0, 0)))
+                features = np.pad(features, ((n_tiles_per_batch-n_tiles_per_image, 0), (0, 0)), constant_values=pad_value)
             X.append(features)  
         X = np.stack(X, axis=0)
         yield X, Y
@@ -82,12 +87,13 @@ def test_batch_generator(df):
         (1, n_tiles_per_sample, n_features)
     '''
     list_of_features = [np.load(filename)[:, 3:] for filename in df['Path']]
+    labels = df['Target'].values if 'Target' in df.columns else [None]*len(df)
     n_batches = len(df)
     batch_id = 0
 
     while True:  
         batch_id = batch_id + 1 if batch_id < n_batches-1 else 0
-        yield list_of_features[batch_id][None,...]
+        yield list_of_features[batch_id][None,...], labels[batch_id][None,...]
        
     
 '''
