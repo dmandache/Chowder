@@ -27,14 +27,17 @@ class MILPooling(Layer):
 
         # extract top_k
         # tf.nn.top_k returns two tensors [values, indices], keep values only
-        top_k = tf.nn.top_k(shifted_input, k=self.kmax, sorted=True, name=None)[0]
+        top_k = tf.nn.top_k(shifted_input, k=self.kmax, sorted=False, name=None).values
         
         # extract bottom_k
         # using same tf.nn.top_k function on inverted values, then invert again to obtain original values
         if self.kmin > 0:
-            bottom_k = tf.negative(tf.nn.top_k(tf.negative(shifted_input), k=self.kmin, sorted=True, name=None)[0])
+            bottom_k = tf.negative(tf.nn.top_k(tf.negative(shifted_input), k=self.kmin, sorted=False, name=None).values)
             
         # concatenate top_k and bottom_k in a single tensor
         out = tf.concat([top_k, bottom_k], -1) if self.kmin > 0 else top_k
+        
+        # swap last two dimensions again to obtain original shape
+        out = tf.transpose(out, [0, 2, 1])
 
         return out
