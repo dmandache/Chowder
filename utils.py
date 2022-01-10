@@ -14,20 +14,18 @@ def batch_generator(df, batch_size):
     '''
     df_batch_neg = df[df.Target==0]
     df_batch_pos = df[df.Target==1]
-    neg_ratio = len(df_batch_neg)//len(df)
+    neg_ratio = len(df_batch_neg)/len(df)
     
     while True:
-        # randomly sample N indeces
+        # randomly sample N*ratio negative samples and N*(1-ratio) positive samples
         df_batch_neg = df_batch_neg.sample(n=batch_size*neg_ratio)
         df_batch_pos = df_batch_pos.sample(n=batch_size-len(df_batch_neg))
         df_batch = pd.concat([df_batch_neg,df_batch_pos])
         # shuffle
         df_batch = df_batch.sample(frac=1)
-        
         # get labels in batch
         Y = df_batch.Target.values
-        # compute the maximum number of tiles 
-        # contained by an image in  the current batch
+        # compute the maximum number of tiles contained by an image in  the current batch
         n_tiles_per_batch = df_batch['tiles_count'].max()
         # get the features in batch
         X = []
